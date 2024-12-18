@@ -15,7 +15,7 @@ function tokenize(code) {
 
     while ((match = regex.exec(code)) !== null) {
         const value = match[0];
-        if (['escreva', 'calcule', 'variavel', 'se', 'senao', 'enquanto', 'conjunto'].includes(value)) {
+        if (['escreva', 'calcule', 'variavel', 'se', 'senao', 'enquanto', 'conjunto', 'pergunte'].includes(value)) {
             tokens.push({ type: TOKEN_TYPES.KEYWORD, value });
         } else if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(value)) {
             tokens.push({ type: TOKEN_TYPES.IDENTIFIER, value });

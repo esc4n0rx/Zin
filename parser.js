@@ -29,23 +29,36 @@ function parse(tokens) {
 
     function parsePrimaryExpression() {
         const token = tokens[current];
-
+    
         if (!token) throw new TypeError('Fim inesperado de entrada');
-
+    
         if (token.type === 'STRING') {
             current++;
             return { type: 'Literal', value: token.value.replace(/^"|"$/g, ''), literalType: 'STRING' };
         }
-
+    
         if (token.type === 'NUMBER') {
             current++;
             return { type: 'Literal', value: Number(token.value), literalType: 'NUMBER' };
         }
-
+    
+        if (token.type === 'KEYWORD' && token.value === 'pergunte') {
+            // Agora parseamos pergunte(...) como uma expressão
+            current++; // consume 'pergunte'
+            eat('OPERATOR', '(');
+            const questionToken = tokens[current];
+            if (!questionToken || questionToken.type !== 'STRING') {
+                throw new TypeError("Erro de sintaxe: esperava uma STRING após 'pergunte('");
+            }
+            current++; // consume a STRING
+            eat('OPERATOR', ')');
+            // Aqui retornamos um nó representando essa expressão
+            return { type: 'PergunteExpression', question: questionToken.value.replace(/^"|"$/g, '') };
+        }
+    
         if (token.type === 'IDENTIFIER') {
             current++;
             let node = { type: 'Identifier', name: token.value };
-
             while (checkOperator('[')) {
                 eat('OPERATOR', '[');
                 const indexExpr = parseExpression(); 
@@ -55,12 +68,12 @@ function parse(tokens) {
                 eat('OPERATOR', ']');
                 node = { type: 'IndexExpression', object: node, index: indexExpr };
             }
-
             return node;
         }
-
+    
         throw new TypeError(`Token inesperado em expressão: ${JSON.stringify(token)}`);
     }
+    
 
     function walk() {
         const token = tokens[current];
@@ -112,13 +125,12 @@ function parse(tokens) {
                     if (checkOperator(',')) {
                         eat('OPERATOR', ',');
                     } else {
-
+                        // sem vírgula, continua
                     }
                 }
                 eat('OPERATOR', ']');
                 valueNode = { type: 'ArrayLiteral', elements };
             } else {
-
                 const val = tokens[current];
                 if (!val) throw new TypeError(`Esperava um valor após '=' na declaração de variável`);
                 if (val.type === 'STRING') {
@@ -227,11 +239,39 @@ function parse(tokens) {
             return { type: 'WhileStatement', condition, body };
         }
 
-        throw new TypeError(`Token desconhecido ou não suportado: ${JSON.stringify(token)}`);
+        // Aqui adicionamos o "pergunte" dentro do walk()
+        if (token && token.type === 'KEYWORD' && token.value === 'pergunte') {
+            current++;
+            if (tokens[current] && tokens[current].type === 'STRING') {
+                const questionToken = tokens[current];
+                current++;
+                
+                // Espera-se um IDENTIFIER após a pergunta
+                const varToken = tokens[current];
+                if (!varToken || varToken.type !== 'IDENTIFIER') {
+                    throw new TypeError("Erro de sintaxe: esperava um identificador de variável após a pergunta");
+                }
+                current++;
+        
+                eat('OPERATOR', ';');
+                return { type: 'InputStatement', question: questionToken.value, variable: varToken.value };
+            } else {
+                throw new TypeError("Erro de sintaxe: esperava uma STRING após 'pergunte'");
+            }
+        }        
+
+        // Se chegou aqui e não houve retorno, significa token desconhecido
+        if (token) {
+            throw new TypeError(`Token desconhecido ou não suportado: ${JSON.stringify(token)}`);
+        } else {
+            // Sem tokens
+            return null;
+        }
     }
 
     while (current < tokens.length) {
-        root.body.push(walk());
+        const stmt = walk();
+        if (stmt) root.body.push(stmt);
     }
 
     return root;

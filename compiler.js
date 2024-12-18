@@ -2,6 +2,7 @@ const fs = require('fs');
 const { tokenize } = require('./lexer');
 const { parse } = require('./parser');
 const { performance } = require('perf_hooks'); 
+const readline = require('readline');
 
 const variables = {};
 const filePath = process.argv[2];
@@ -10,6 +11,18 @@ if (!filePath) {
     console.error('Erro: Nenhum arquivo fornecido.\nUso: zin <arquivo.z>');
     process.exit(1);
 }
+
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
+function askQuestion(question) {
+    return new Promise(resolve => rl.question(question, answer => resolve(answer)));
+}
+
+
+
 
 function evaluateNode(node) {
     switch (node.type) {
@@ -181,8 +194,9 @@ function evaluateCondition(condition) {
     return eval(conditionString);
 }
 
-function executeAST(ast) {
-    ast.body.forEach(node => {
+
+async function executeAST(ast) {
+    for (const node of ast.body) {
         if (node.type === 'EscrevaStatement') {
             let output = '';
             node.value.forEach(v => {
@@ -222,21 +236,28 @@ function executeAST(ast) {
 
         } else if (node.type === 'IfStatement') {
             if (evaluateCondition(node.condition)) {
-                executeAST({ body: node.body });
+                await executeAST({ body: node.body });
             } else if (node.elseBody) {
-                executeAST({ body: node.elseBody });
+                await executeAST({ body: node.elseBody });
             }
 
         } else if (node.type === 'WhileStatement') {
             while (evaluateCondition(node.condition)) {
-                executeAST({ body: node.body });
+                await executeAST({ body: node.body });
             }
+
+        } else if (node.type === 'InputStatement') {
+            const question = node.question.replace(/(^"|"$)/g, ''); 
+            const answer = await askQuestion(question);
+            variables[node.variable] = isNaN(Number(answer)) ? answer : Number(answer);
+            console.log(`Variável '${node.variable}' definida com valor '${variables[node.variable]}'`);
 
         } else {
             console.error(`Comando desconhecido: ${node.type}`);
         }
-    });
+    }
 }
+
 
 
 try {
