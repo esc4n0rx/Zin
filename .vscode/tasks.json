@@ -1,0 +1,17 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Executar Arquivo Zin",
+            "type": "shell",
+            "command": "D:\\Zin\\zin.bat",
+            "args": ["${file}"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "detail": "Executa arquivos .z usando zin.bat"
+        }
+    ]
+}

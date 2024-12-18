@@ -1,0 +1,28 @@
+{
+  "name": "language-zin",
+  "displayName": "Zin Language",
+  "description": "Syntax highlighting for Zin programming language",
+  "version": "0.0.1",
+  "publisher": "Paulo Oliveira",
+  "engines": {
+      "vscode": "^1.50.0"
+  },
+  "categories": ["Programming Languages"],
+  "contributes": {
+      "languages": [
+          {
+              "id": "zin",
+              "aliases": ["Zin", "zin"],
+              "extensions": [".z"],
+              "configuration": "./language-configuration.json"
+          }
+      ],
+      "grammars": [
+          {
+              "language": "zin",
+              "scopeName": "source.zin",
+              "path": "./syntaxes/zin.tmLanguage.json"
+          }
+      ]
+  }
+}

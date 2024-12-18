@@ -1,0 +1,13 @@
+variavel x = 10;
+enquanto (x > 0) {
+    escreva("Valor de x: " + x);
+
+    se (x % 3 == 0) {
+        escreva("x é múltiplo de 3.");
+    } senao {
+        escreva("x não é múltiplo de 3.");
+    }
+
+    calcule(x = x - 1);
+}
+escreva("Contagem encerrada!");

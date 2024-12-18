@@ -1,0 +1,38 @@
+{
+    "scopeName": "source.zin",
+    "name": "Zin",
+    "patterns": [
+        {
+            "name": "keyword.control.zin",
+            "match": "\\b(escreva|calcule|variavel|se|senao|enquanto)\\b"
+        },
+        {
+            "name": "variable.parameter.zin",
+            "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+        },
+        {
+            "name": "constant.numeric.zin",
+            "match": "\\b\\d+\\b"
+        },
+        {
+            "name": "string.quoted.double.zin",
+            "begin": "\"",
+            "end": "\"",
+            "patterns": [
+                {
+                    "name": "constant.character.escape.zin",
+                    "match": "\\\\."
+                }
+            ]
+        },
+        {
+            "name": "comment.line.double-slash.zin",
+            "begin": "//",
+            "end": "$"
+        },
+        {
+            "name": "keyword.operator.zin",
+            "match": "[=+\\-*/<>!]"
+        }
+    ]
+}
