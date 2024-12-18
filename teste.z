@@ -1,13 +1,35 @@
-variavel x = 10;
-enquanto (x > 0) {
-    escreva("Valor de x: " + x);
+variavel soma = 0;
+variavel count_m3 = 0;
+variavel i = 0;
+variavel val = 0;
 
-    se (x % 3 == 0) {
-        escreva("x é múltiplo de 3.");
-    } senao {
-        escreva("x não é múltiplo de 3.");
+enquanto (i < 50000) {
+    se (i % 10000 == 0) {
+        escreva("Processando i: " + i);
     }
 
-    calcule(x = x - 1);
+    calcule(val = i);
+
+    se (val % 3 == 0) {
+        calcule(count_m3 = count_m3 + 1);
+    }
+
+    calcule(soma = soma + val);
+    calcule(i = i + 1);
 }
-escreva("Contagem encerrada!");
+
+escreva("Soma total: " + soma);
+escreva("Quantidade de múltiplos de 3: " + count_m3);
+
+variavel x = 10;
+enquanto (x > 0) {
+    se (x == 5) {
+        escreva("x é igual a 5, encerrando loop interno...");
+        calcule(x = 0);
+    } senao {
+        escreva("Contando para trás: " + x);
+        calcule(x = x - 1);
+    }
+}
+
+escreva("Fim do teste de performance!");

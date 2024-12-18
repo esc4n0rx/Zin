@@ -185,7 +185,7 @@ Fim do programa.
 ## **9. Execução do Programa**
 
 ### **Requisitos**
-- Tenha o arquivo `zin.bat` configurado em `D:\Zin`.
+- Tenha o arquivo `zin.bat` na raiz do projeto  para executar.
 - Arquivos `.z` criados no VSCode ou qualquer editor.
 
 ### **Execução**
