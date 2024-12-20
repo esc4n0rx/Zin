@@ -1,15 +1,24 @@
-variavel x = 0;
-
-enquanto (x < 5) {
-    escreva("Valor de x: " + x);
-
-    se (x % 2 == 0) {
-        escreva("x é par.");
-    } senao {
-        escreva("x é ímpar.");
-    }
-
-    calcule(x = x + 1);
+funcao soma(a, b) {
+    retorne a + b;
 }
 
-escreva("Fim do programa.");
+funcao subtrair(a, b) {
+    retorne a - b;
+}
+
+variavel x = soma(5, 10);
+variavel y = subtrair(x, 2);
+
+escreva("x = ");
+escreva(x);
+escreva("\n");
+
+escreva("y = ");
+escreva(y);
+escreva("\n");
+
+se (y > 10) {
+    escreva("y é maior que 10\n");
+} senao {
+    escreva("y não é maior que 10\n");
+}

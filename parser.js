@@ -1,280 +1,273 @@
 function parse(tokens) {
-    const root = { type: 'Program', body: [] };
     let current = 0;
 
+    function check(type, value) {
+        const token = tokens[current];
+        if (!token) return false;
+        if (value !== undefined) return token.type === type && token.value === value;
+        return token.type === type;
+    }
+
     function checkOperator(value) {
-        return tokens[current] && tokens[current].type === 'OPERATOR' && tokens[current].value === value;
+        const token = tokens[current];
+        return token && token.type === 'OPERATOR' && token.value === value;
     }
 
     function eat(type, value) {
         const token = tokens[current];
         if (!token || token.type !== type || (value && token.value !== value)) {
-            throw new TypeError(`Token inesperado: esperava ${type} ${value ? value : ''}, obteve ${token ? token.type + ' ' + token.value : 'EOF'}`);
+            throw new TypeError(`Token inesperado: esperava ${type}${value ? ' ' + value : ''}, obteve ${token ? token.type + ' ' + token.value : 'EOF'}`);
         }
         current++;
         return token;
     }
 
-    function parseExpression() {
-        let node = parsePrimaryExpression();
+    function parseProgram() {
+        const body = [];
+        while (current < tokens.length) {
+            const stmt = parseStatement();
+            if (stmt) body.push(stmt);
+        }
+        return { type: 'Program', body };
+    }
 
-        while (checkOperator('+')) {
-            eat('OPERATOR', '+');
-            let right = parsePrimaryExpression();
-            node = { type: 'BinaryExpression', operator: '+', left: node, right };
+    function parseStatement() {
+        const token = tokens[current];
+        if (!token) return null;
+
+        if (check('KEYWORD', 'escreva')) return parseEscrevaStatement();
+        if (check('KEYWORD', 'variavel')) return parseVariavelDeclaration();
+        if (check('KEYWORD', 'funcao')) return parseFunctionDeclaration();
+        if (check('KEYWORD', 'retorne')) return parseReturnStatement();
+        if (check('KEYWORD', 'calcule')) return parseCalculeExpression();
+        if (check('KEYWORD', 'se')) return parseIfStatement();
+        if (check('KEYWORD', 'enquanto')) return parseWhileStatement();
+        if (check('KEYWORD', 'pergunte')) return parseInputStatement();
+
+        throw new TypeError(`Token desconhecido ou não suportado: ${JSON.stringify(token)}`);
+    }
+
+    function parseEscrevaStatement() {
+        eat('KEYWORD', 'escreva');
+        eat('OPERATOR', '(');
+        const args = [];
+        while (!checkOperator(')')) {
+            args.push(parseExpression());
+        }
+        eat('OPERATOR', ')');
+        eat('OPERATOR', ';');
+        return { type: 'EscrevaStatement', value: args };
+    }
+
+    function parseVariavelDeclaration() {
+        eat('KEYWORD', 'variavel');
+        const nameToken = eat('IDENTIFIER');
+        eat('OPERATOR', '=');
+        const valueNode = parseExpression();
+        eat('OPERATOR', ';');
+        return { type: 'VariavelDeclaration', name: nameToken.value, valueNode };
+    }
+
+    function parseFunctionDeclaration() {
+        eat('KEYWORD', 'funcao');
+        const name = eat('IDENTIFIER');
+        eat('OPERATOR', '(');
+
+        const params = [];
+        while (!checkOperator(')')) {
+            const param = eat('IDENTIFIER');
+            params.push(param.value);
+            if (checkOperator(',')) eat('OPERATOR', ',');
+        }
+        eat('OPERATOR', ')');
+
+        eat('OPERATOR', '{');
+        const body = parseBlock();
+        eat('OPERATOR', '}');
+
+        return {
+            type: 'FunctionDeclaration',
+            name: name.value,
+            params,
+            body,
+        };
+    }
+
+    function parseReturnStatement() {
+        eat('KEYWORD', 'retorne');
+        const value = parseExpression();
+        eat('OPERATOR', ';');
+        return { type: 'ReturnStatement', value };
+    }
+
+    function parseCalculeExpression() {
+        eat('KEYWORD', 'calcule');
+        eat('OPERATOR', '(');
+        const expressions = [];
+        while (!checkOperator(')')) {
+            const t = tokens[current];
+            if (!t) throw new TypeError('Fim inesperado em calcule');
+            if (
+                t.type === 'NUMBER' ||
+                t.type === 'IDENTIFIER' ||
+                ['+', '-', '*', '/', '=', '<', '>', '<=', '>=', '==', '!='].includes(t.value)
+            ) {
+                expressions.push(t);
+                current++;
+            } else {
+                throw new TypeError(`Erro de sintaxe: token inválido dentro de 'calcule' (${JSON.stringify(t)})`);
+            }
+        }
+        eat('OPERATOR', ')');
+        eat('OPERATOR', ';');
+        return { type: 'CalculeExpression', expressions };
+    }
+
+    function parseIfStatement() {
+        eat('KEYWORD', 'se');
+        eat('OPERATOR', '(');
+        const condition = parseConditionTokens('se');
+        eat('OPERATOR', ')');
+        eat('OPERATOR', '{');
+        const body = parseBlock();
+        eat('OPERATOR', '}');
+
+        let elseBody = null;
+        if (check('KEYWORD', 'senao')) {
+            eat('KEYWORD', 'senao');
+            eat('OPERATOR', '{');
+            elseBody = parseBlock();
+            eat('OPERATOR', '}');
         }
 
+        return { type: 'IfStatement', condition, body, elseBody };
+    }
+
+    function parseWhileStatement() {
+        eat('KEYWORD', 'enquanto');
+        eat('OPERATOR', '(');
+        const condition = parseConditionTokens('enquanto');
+        eat('OPERATOR', ')');
+        eat('OPERATOR', '{');
+        const body = parseBlock();
+        eat('OPERATOR', '}');
+        return { type: 'WhileStatement', condition, body };
+    }
+
+    function parseInputStatement() {
+        eat('KEYWORD', 'pergunte');
+        const questionToken = tokens[current];
+        if (!questionToken || questionToken.type !== 'STRING') {
+            throw new TypeError("Erro de sintaxe: esperava uma STRING após 'pergunte'");
+        }
+        current++;
+
+        const varToken = tokens[current];
+        if (!varToken || varToken.type !== 'IDENTIFIER') {
+            throw new TypeError("Erro de sintaxe: esperava um identificador de variável após a pergunta");
+        }
+        current++;
+
+        eat('OPERATOR', ';');
+        return { type: 'InputStatement', question: questionToken.value, variable: varToken.value };
+    }
+
+    function parseBlock() {
+        const body = [];
+        while (!checkOperator('}') && current < tokens.length) {
+            body.push(parseStatement());
+        }
+        return body;
+    }
+
+    function parseConditionTokens(context) {
+        // Simples, sem parse detalhado, assumindo tokens lineares
+        const condition = [];
+        while (!checkOperator(')')) {
+            const t = tokens[current];
+            if (!t) throw new TypeError(`Fim inesperado em condição de ${context}`);
+            if (
+                t.type === 'NUMBER' ||
+                t.type === 'IDENTIFIER' ||
+                ['+', '-', '*', '/', '%', '<', '>', '<=', '>=', '==', '!='].includes(t.value)
+            ) {
+                condition.push(t);
+                current++;
+            } else {
+                throw new TypeError(`Erro de sintaxe: token inválido na condição (${JSON.stringify(t)})`);
+            }
+        }
+        return condition;
+    }
+
+    // Precedência de operadores:
+    // parseExpression -> lida com + e -
+    // parseTerm -> lida com * e /
+    // parseFactor -> lida com literais, identificadores, chamadas de função
+    function parseExpression() {
+        let node = parseTerm();
+        while (checkOperator('+') || checkOperator('-')) {
+            const op = tokens[current].value;
+            eat('OPERATOR', op);
+            const right = parseTerm();
+            node = { type: 'BinaryExpression', operator: op, left: node, right };
+        }
         return node;
+    }
+
+    function parseTerm() {
+        let node = parseFactor();
+        while (checkOperator('*') || checkOperator('/')) {
+            const op = tokens[current].value;
+            eat('OPERATOR', op);
+            const right = parseFactor();
+            node = { type: 'BinaryExpression', operator: op, left: node, right };
+        }
+        return node;
+    }
+
+    function parseFactor() {
+        return parsePrimaryExpression();
     }
 
     function parsePrimaryExpression() {
         const token = tokens[current];
-    
+
         if (!token) throw new TypeError('Fim inesperado de entrada');
-    
+
         if (token.type === 'STRING') {
             current++;
             return { type: 'Literal', value: token.value.replace(/^"|"$/g, ''), literalType: 'STRING' };
         }
-    
+
         if (token.type === 'NUMBER') {
             current++;
             return { type: 'Literal', value: Number(token.value), literalType: 'NUMBER' };
         }
-    
-        if (token.type === 'KEYWORD' && token.value === 'pergunte') {
-            // Agora parseamos pergunte(...) como uma expressão
-            current++; // consume 'pergunte'
-            eat('OPERATOR', '(');
-            const questionToken = tokens[current];
-            if (!questionToken || questionToken.type !== 'STRING') {
-                throw new TypeError("Erro de sintaxe: esperava uma STRING após 'pergunte('");
-            }
-            current++; // consume a STRING
-            eat('OPERATOR', ')');
-            // Aqui retornamos um nó representando essa expressão
-            return { type: 'PergunteExpression', question: questionToken.value.replace(/^"|"$/g, '') };
-        }
-    
+
         if (token.type === 'IDENTIFIER') {
             current++;
             let node = { type: 'Identifier', name: token.value };
-            while (checkOperator('[')) {
-                eat('OPERATOR', '[');
-                const indexExpr = parseExpression(); 
-                if (!checkOperator(']')) {
-                    throw new TypeError(`Esperava ']' após índice de array`);
-                }
-                eat('OPERATOR', ']');
-                node = { type: 'IndexExpression', object: node, index: indexExpr };
-            }
-            return node;
-        }
-    
-        throw new TypeError(`Token inesperado em expressão: ${JSON.stringify(token)}`);
-    }
-    
 
-    function walk() {
-        const token = tokens[current];
-
-        if (token && token.type === 'KEYWORD' && token.value === 'escreva') {
-            current++;
+            // Chamada de função
             if (checkOperator('(')) {
                 eat('OPERATOR', '(');
                 const args = [];
                 while (!checkOperator(')')) {
                     args.push(parseExpression());
+                    if (checkOperator(',')) eat('OPERATOR', ',');
                 }
                 eat('OPERATOR', ')');
-                eat('OPERATOR', ';');
-                return { type: 'EscrevaStatement', value: args };
-            } else {
-                throw new TypeError(`Erro de sintaxe: esperava '(' após 'escreva'`);
+                node = { type: 'CallExpression', callee: node, arguments: args };
             }
+
+            return node;
         }
 
-        if (token && token.type === 'KEYWORD' && token.value === 'variavel') {
-            current++;
-            const name = eat('IDENTIFIER');
-
-            eat('OPERATOR', '=');
-
-            let valueNode;
-            if (tokens[current] && tokens[current].type === 'KEYWORD' && tokens[current].value === 'conjunto') {
-                current++;
-                eat('OPERATOR', '[');
-                const elements = [];
-                while (!checkOperator(']')) {
-                    const el = tokens[current];
-                    if (!el) {
-                        throw new TypeError('Fim inesperado ao parsear conjunto');
-                    }
-                    if (el.type === 'STRING') {
-                        current++;
-                        elements.push({ type: 'Literal', value: el.value.replace(/^"|"$/g, ''), literalType: 'STRING' });
-                    } else if (el.type === 'NUMBER') {
-                        current++;
-                        elements.push({ type: 'Literal', value: Number(el.value), literalType: 'NUMBER' });
-                    } else if (el.type === 'IDENTIFIER') {
-                        current++;
-                        elements.push({ type: 'Identifier', name: el.value });
-                    } else {
-                        throw new TypeError(`Elemento inválido no conjunto: ${JSON.stringify(el)}`);
-                    }
-                    if (checkOperator(',')) {
-                        eat('OPERATOR', ',');
-                    } else {
-                        // sem vírgula, continua
-                    }
-                }
-                eat('OPERATOR', ']');
-                valueNode = { type: 'ArrayLiteral', elements };
-            } else {
-                const val = tokens[current];
-                if (!val) throw new TypeError(`Esperava um valor após '=' na declaração de variável`);
-                if (val.type === 'STRING') {
-                    current++;
-                    valueNode = { type: 'Literal', value: val.value.replace(/^"|"$/g, ''), literalType: 'STRING' };
-                } else if (val.type === 'NUMBER') {
-                    current++;
-                    valueNode = { type: 'Literal', value: Number(val.value), literalType: 'NUMBER' };
-                } else if (val.type === 'IDENTIFIER') {
-                    current++;
-                    valueNode = { type: 'Identifier', name: val.value };
-                } else {
-                    throw new TypeError(`Esperava um valor literal ou variável após '='`);
-                }
-            }
-
-            eat('OPERATOR', ';');
-            return { type: 'VariavelDeclaration', name: name.value, valueNode };
-        }
-
-        if (token && token.type === 'KEYWORD' && token.value === 'calcule') {
-            current++;
-            eat('OPERATOR', '(');
-            const expressions = [];
-            while (!checkOperator(')')) {
-                const t = tokens[current];
-                if (!t) throw new TypeError('Fim inesperado em calcule');
-                if (
-                    t.type === 'NUMBER' ||
-                    t.type === 'IDENTIFIER' ||
-                    ['+', '-', '*', '/', '=', '<', '>', '<=', '>=', '==', '!='].includes(t.value)
-                ) {
-                    expressions.push(t);
-                    current++;
-                } else {
-                    throw new TypeError(`Erro de sintaxe: token inválido dentro de 'calcule' (${JSON.stringify(t)})`);
-                }
-            }
-            eat('OPERATOR', ')');
-            eat('OPERATOR', ';');
-            return { type: 'CalculeExpression', expressions };
-        }
-
-        if (token && token.type === 'KEYWORD' && token.value === 'se') {
-            current++;
-            eat('OPERATOR', '(');
-            const condition = [];
-            while (!checkOperator(')')) {
-                const t = tokens[current];
-                if (!t) throw new TypeError('Fim inesperado em condição de se');
-                if (
-                    t.type === 'NUMBER' ||
-                    t.type === 'IDENTIFIER' ||
-                    ['+', '-', '*', '/', '%', '<', '>', '<=', '>=', '==', '!='].includes(t.value)
-                ) {
-                    condition.push(t);
-                    current++;
-                } else {
-                    throw new TypeError(`Erro de sintaxe: token inválido na condição (${JSON.stringify(t)})`);
-                }
-            }
-            eat('OPERATOR', ')');
-            eat('OPERATOR', '{');
-            const body = [];
-            while (!checkOperator('}')) {
-                body.push(walk());
-            }
-            eat('OPERATOR', '}');
-            let elseBody = null;
-            if (tokens[current] && tokens[current].type === 'KEYWORD' && tokens[current].value === 'senao') {
-                current++;
-                eat('OPERATOR', '{');
-                elseBody = [];
-                while (!checkOperator('}')) {
-                    elseBody.push(walk());
-                }
-                eat('OPERATOR', '}');
-            }
-            return { type: 'IfStatement', condition, body, elseBody };
-        }
-
-        if (token && token.type === 'KEYWORD' && token.value === 'enquanto') {
-            current++;
-            eat('OPERATOR', '(');
-            const condition = [];
-            while (!checkOperator(')')) {
-                const t = tokens[current];
-                if (!t) throw new TypeError('Fim inesperado em condição de enquanto');
-                if (
-                    t.type === 'NUMBER' || t.type === 'IDENTIFIER' ||
-                    ['+', '-', '*', '/', '%', '<', '>', '<=', '>=', '==', '!='].includes(t.value)
-                ) {
-                    condition.push(t);
-                    current++;
-                } else {
-                    throw new TypeError(`Erro de sintaxe: token inválido na condição de 'enquanto' (${JSON.stringify(t)})`);
-                }
-            }
-            eat('OPERATOR', ')');
-            eat('OPERATOR', '{');
-            const body = [];
-            while (!checkOperator('}')) {
-                body.push(walk());
-            }
-            eat('OPERATOR', '}');
-            return { type: 'WhileStatement', condition, body };
-        }
-
-        // Aqui adicionamos o "pergunte" dentro do walk()
-        if (token && token.type === 'KEYWORD' && token.value === 'pergunte') {
-            current++;
-            if (tokens[current] && tokens[current].type === 'STRING') {
-                const questionToken = tokens[current];
-                current++;
-                
-                // Espera-se um IDENTIFIER após a pergunta
-                const varToken = tokens[current];
-                if (!varToken || varToken.type !== 'IDENTIFIER') {
-                    throw new TypeError("Erro de sintaxe: esperava um identificador de variável após a pergunta");
-                }
-                current++;
-        
-                eat('OPERATOR', ';');
-                return { type: 'InputStatement', question: questionToken.value, variable: varToken.value };
-            } else {
-                throw new TypeError("Erro de sintaxe: esperava uma STRING após 'pergunte'");
-            }
-        }        
-
-        // Se chegou aqui e não houve retorno, significa token desconhecido
-        if (token) {
-            throw new TypeError(`Token desconhecido ou não suportado: ${JSON.stringify(token)}`);
-        } else {
-            // Sem tokens
-            return null;
-        }
+        throw new TypeError(`Token inesperado em expressão: ${JSON.stringify(token)}`);
     }
 
-    while (current < tokens.length) {
-        const stmt = walk();
-        if (stmt) root.body.push(stmt);
-    }
-
-    return root;
+    return parseProgram();
 }
 
 module.exports = { parse };
