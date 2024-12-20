@@ -1,0 +1,13 @@
+funcao soma(a, b) {
+    retorne a + b;
+}
+
+funcao fatorial(n) {
+    se (n == 0) {
+        retorne 1;
+    }
+    retorne n * fatorial(n - 1);
+}
+
+variavel valorInicial = 10;
+

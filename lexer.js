@@ -10,12 +10,12 @@ const TOKEN_TYPES = {
 function tokenize(code) {
     const tokens = [];
 
-    const regex = /\b(escreva|calcule|variavel|se|senao|enquanto|conjunto|funcao|retorne)\b|[a-zA-Z_][a-zA-Z0-9_]*|".*?"|\d+|(>=|<=|==|!=|[+\-*/=();{}<>!&|%,\[\]])/g;
+    const regex = /\b(escreva|calcule|variavel|se|senao|enquanto|conjunto|funcao|retorne|importe)\b|[a-zA-Z_][a-zA-Z0-9_]*|".*?"|\d+|(>=|<=|==|!=|[+\-*/=();{}<>!&|%,\[\]])/g;
     let match;
 
     while ((match = regex.exec(code)) !== null) {
         const value = match[0];
-        if (['escreva', 'calcule', 'variavel', 'se', 'senao', 'enquanto', 'conjunto', 'funcao', 'retorne'].includes(value)) {
+        if (['escreva', 'calcule', 'variavel', 'se', 'senao', 'enquanto', 'conjunto', 'funcao', 'retorne','importe'].includes(value)) {
             tokens.push({ type: TOKEN_TYPES.KEYWORD, value });        
         } else if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(value)) {
             tokens.push({ type: TOKEN_TYPES.IDENTIFIER, value });

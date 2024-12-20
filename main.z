@@ -1,0 +1,20 @@
+importe "modules/teste.z";
+
+escreva("Iniciando o programa principal...\n");
+
+escreva("Chamando soma(5, 7): ");
+escreva(soma(5, 7));
+escreva("\n");
+
+escreva("Valor inicial do módulo: ");
+escreva(valorInicial);
+escreva("\n");
+
+escreva("Chamando fatorial(5): ");
+escreva(fatorial(5));
+escreva("\n");
+
+variavel resultado = soma(valorInicial, fatorial(3));
+escreva("Resultado da soma entre valorInicial e fatorial(3): ");
+escreva(resultado);
+escreva("\n");

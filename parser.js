@@ -1,4 +1,16 @@
-function parse(tokens) {
+const fs = require('fs');
+const path = require('path');
+
+let importedModules = new Set();
+let filePath; 
+let tokenize; 
+
+function parse(tokens, entryFilePath, tokenizeFn) {
+
+    filePath = entryFilePath;
+    tokenize = tokenizeFn;
+    importedModules = new Set();
+
     let current = 0;
 
     function check(type, value) {
@@ -35,6 +47,7 @@ function parse(tokens) {
         const token = tokens[current];
         if (!token) return null;
 
+        if (check('KEYWORD', 'importe')) return parseImportStatement();
         if (check('KEYWORD', 'escreva')) return parseEscrevaStatement();
         if (check('KEYWORD', 'variavel')) return parseVariavelDeclaration();
         if (check('KEYWORD', 'funcao')) return parseFunctionDeclaration();
@@ -45,6 +58,50 @@ function parse(tokens) {
         if (check('KEYWORD', 'pergunte')) return parseInputStatement();
 
         throw new TypeError(`Token desconhecido ou não suportado: ${JSON.stringify(token)}`);
+    }
+
+    function parseImportStatement() {
+        eat('KEYWORD', 'importe');
+        const moduleToken = eat('STRING');
+        eat('OPERATOR', ';');
+
+        const modulePath = moduleToken.value.replace(/^"|"$/g, '');
+        return inlineModule(modulePath);
+    }
+
+    function inlineModule(modulePath) {
+        const fullPath = path.resolve(path.dirname(filePath), modulePath);
+
+        if (importedModules.has(fullPath)) {
+
+            return null; 
+        }
+
+        importedModules.add(fullPath);
+
+        const code = fs.readFileSync(fullPath, 'utf-8');
+        const modTokens = tokenize(code);
+        const modAST = parseModule(modTokens, fullPath);
+
+        return { type: 'ModuleInline', body: modAST.body };
+    }
+
+    function parseModule(modTokens, moduleFilePath) {
+        const oldCurrent = current;
+        const oldTokens = tokens;
+        const oldFilePath = filePath;
+
+        tokens = modTokens;
+        current = 0;
+        filePath = moduleFilePath;
+
+        const ast = parseProgram();
+
+        tokens = oldTokens;
+        current = oldCurrent;
+        filePath = oldFilePath;
+
+        return ast;
     }
 
     function parseEscrevaStatement() {
@@ -181,7 +238,6 @@ function parse(tokens) {
     }
 
     function parseConditionTokens(context) {
-        // Simples, sem parse detalhado, assumindo tokens lineares
         const condition = [];
         while (!checkOperator(')')) {
             const t = tokens[current];
@@ -200,10 +256,6 @@ function parse(tokens) {
         return condition;
     }
 
-    // Precedência de operadores:
-    // parseExpression -> lida com + e -
-    // parseTerm -> lida com * e /
-    // parseFactor -> lida com literais, identificadores, chamadas de função
     function parseExpression() {
         let node = parseTerm();
         while (checkOperator('+') || checkOperator('-')) {
@@ -249,7 +301,6 @@ function parse(tokens) {
             current++;
             let node = { type: 'Identifier', name: token.value };
 
-            // Chamada de função
             if (checkOperator('(')) {
                 eat('OPERATOR', '(');
                 const args = [];
@@ -267,7 +318,29 @@ function parse(tokens) {
         throw new TypeError(`Token inesperado em expressão: ${JSON.stringify(token)}`);
     }
 
-    return parseProgram();
+    const ast = parseProgram();
+
+    inlineModules(ast);
+
+    return ast;
+
+    function inlineModules(ast) {
+        function recurse(nodeArray) {
+            for (let i = 0; i < nodeArray.length; i++) {
+                const node = nodeArray[i];
+                if (node && node.type === 'ModuleInline') {
+                    
+                    nodeArray.splice(i, 1, ...node.body);
+                    i--; 
+                } else if (node && Array.isArray(node.body)) {
+                    recurse(node.body);
+                } else if (node && Array.isArray(node.value)) {
+                    recurse(node.value);
+                }
+            }
+        }
+        recurse(ast.body);
+    }
 }
 
 module.exports = { parse };

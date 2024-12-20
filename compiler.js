@@ -80,7 +80,6 @@ async function evaluateNode(node) {
 
             const result = await executeAST({ body: func.body });
 
-
             Object.assign(variables, localVariables);
 
             return (result !== undefined) ? result : null;
@@ -91,75 +90,6 @@ async function evaluateNode(node) {
     }
 }
 
-
-
-
-function evaluateNode(node) {
-    switch (node.type) {
-        case 'Literal':
-            return node.value;
-        case 'Identifier':
-            if (variables[node.name] === undefined) {
-                throw new Error(`Variável desconhecida: ${node.name}`);
-            }
-            return variables[node.name];
-        case 'IndexExpression':
-            const arrayVal = evaluateNode(node.object);
-            const indexVal = evaluateNode(node.index);
-            if (!Array.isArray(arrayVal)) {
-                throw new Error(`Tentando indexar variável que não é array`);
-            }
-            if (typeof indexVal !== 'number') {
-                throw new Error(`Índice não é um número`);
-            }
-            return arrayVal[indexVal];
-        case 'BinaryExpression':
-                const leftVal = evaluateNode(node.left);
-                const rightVal = evaluateNode(node.right);
-                switch (node.operator) {
-                  case '+':
-                    return typeof leftVal === 'number' && typeof rightVal === 'number'
-                      ? leftVal + rightVal
-                      : String(leftVal) + String(rightVal);
-                  case '-':
-                    return Number(leftVal) - Number(rightVal);
-                  case '*':
-                    return Number(leftVal) * Number(rightVal);
-                  case '/':
-                    if (Number(rightVal) === 0) throw new Error("Divisão por zero");
-                    return Number(leftVal) / Number(rightVal);
-                  default:
-                    throw new Error(`Operador '${node.operator}' não suportado neste contexto.`);
-                }
-              
-            
-        case 'CallExpression': {
-            const func = functions[node.callee.name];
-            if (!func) throw new Error(`Função desconhecida: ${node.callee.name}`);
-
-            const args = node.arguments.map(evaluateNode);
-            const localVariables = { ...variables };
-
-            func.params.forEach((param, i) => {
-                variables[param] = args[i];
-            });
-
-            for (const stmt of func.body) {
-                if (stmt.type === 'ReturnStatement') {
-                    const returnValue = evaluateNode(stmt.value);
-                    Object.assign(variables, localVariables);
-                    return returnValue;
-                }
-                executeAST({ body: [stmt] });
-            }
-
-            Object.assign(variables, localVariables);
-            return null;
-        }
-        default:
-            throw new Error(`Tipo de nó não suportado na avaliação: ${node.type}`);
-    }
-}
 
 function evaluateExpression(expressions) {
     let evalString = '';
@@ -203,7 +133,11 @@ async function executeAST(ast) {
         if (node.type === 'EscrevaStatement') {
             let output = '';
             for (const v of node.value) {
-                output += await evaluateNode(v);
+                let val = await evaluateNode(v);
+                if (typeof val === 'string') {
+                    val = val.replace(/\\n/g, '\n');
+                }
+                output += val;
             }
             console.log(output);
 
@@ -284,7 +218,9 @@ async function executeAST(ast) {
         const startTime = performance.now(); 
         const code = fs.readFileSync(filePath, 'utf-8');
         const tokens = tokenize(code);
-        const ast = parse(tokens);
+
+        const ast = parse(tokens, filePath, tokenize);
+        
         console.log('--- Saída do Código Zin ---');
         await executeAST(ast); 
         const endTime = performance.now(); 
@@ -296,4 +232,3 @@ async function executeAST(ast) {
         rl.close();
     }
 })();
-
