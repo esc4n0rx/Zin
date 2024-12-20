@@ -16,7 +16,7 @@
 
 ## **1. Introdução**
 
-**Zin** é uma linguagem de programação simples e didática, projetada para aprendizado. Ela possui sintaxe explícita, comandos básicos para controle de fluxo e manipulação de variáveis, além de suporte a cálculos e operações condicionais.
+**Zin** é uma linguagem de programação simples e didática, projetada para aprendizado. Ela possui sintaxe explícita, comandos básicos para controle de fluxo e manipulação de variáveis, além de suporte a cálculos e operações condicionais, tem suporte basico para função e modularização.
 
 A linguagem Zin utiliza arquivos com a extensão **`.z`**.
 
@@ -27,7 +27,7 @@ A linguagem Zin utiliza arquivos com a extensão **`.z`**.
 Para usar a linguagem Zin, você precisa:
 
 1. **Node.js** instalado no sistema.
-2. Um compilador zin feito em node js.
+2. Clonar o projeto para ter acesso ao compilador e arquivos necessarios.
 3. Um editor de texto, como **Visual Studio Code**, configurado para rodar arquivos `.z`.
 
 ---
