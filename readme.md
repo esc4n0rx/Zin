@@ -11,12 +11,13 @@
 7. [Operadores Suportados](#operadores-suportados)  
 8. [Exemplo Completo](#exemplo-completo)  
 9. [Execução do Programa](#execução-do-programa)  
+10. [Novas Funcionalidades](#novas-funcionalidades)
 
 ---
 
 ## **1. Introdução**
 
-**Zin** é uma linguagem de programação simples e didática, projetada para aprendizado. Ela possui sintaxe explícita, comandos básicos para controle de fluxo e manipulação de variáveis, além de suporte a cálculos e operações condicionais, tem suporte basico para função e modularização.
+**Zin** é uma linguagem de programação simples e didática, projetada para aprendizado. Ela possui sintaxe explícita, comandos básicos para controle de fluxo, manipulação de variáveis, suporte a cálculos e operações condicionais. Agora inclui lógica de modularização e suporte avançado a funções.
 
 A linguagem Zin utiliza arquivos com a extensão **`.z`**.
 
@@ -27,8 +28,14 @@ A linguagem Zin utiliza arquivos com a extensão **`.z`**.
 Para usar a linguagem Zin, você precisa:
 
 1. **Node.js** instalado no sistema.
-2. Clonar o projeto para ter acesso ao compilador e arquivos necessarios.
+2. Clonar o projeto para ter acesso ao compilador e arquivos necessários.
 3. Um editor de texto, como **Visual Studio Code**, configurado para rodar arquivos `.z`.
+4. Use o comando abaixo para instalar:
+   ```powershell
+   Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; `
+   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/seuusuario/Zin/main/install-zin.ps1" -OutFile "install-zin.ps1"; `
+   .\install-zin.ps1
+   ```
 
 ---
 
@@ -55,6 +62,9 @@ escreva("Novo valor de x: " + x);
 | `se`           | Inicia uma estrutura condicional.         |
 | `senao`        | Bloco alternativo ao `se`.                |
 | `enquanto`     | Inicia um loop baseado em uma condição.   |
+| `funcao`       | Cria uma função.                          |
+| `retorne`      | Retorna um valor de uma função.           |
+| `importe`      | Permite importar arquivos.                |
 
 ---
 
@@ -185,27 +195,47 @@ Fim do programa.
 ## **9. Execução do Programa**
 
 ### **Requisitos**
-- Tenha o arquivo `zin.bat` na raiz do projeto  para executar.
-- Arquivos `.z` criados no VSCode ou qualquer editor.
+- Tenha o arquivo `zin.bat` para executar.
+- Crie os arquivos `.z` com um editor de texto.
 
 ### **Execução**
 No terminal, digite:
 
 ```bash
-zin.bat <nome_do_arquivo.z>
+zin <nome_do_arquivo.z>
 ```
 
 **Exemplo**:
 ```bash
-zin.bat teste.z
+zin exemplo.z
 ```
-
-O compilador processará o arquivo `.z` e exibirá a saída no terminal.
 
 ---
 
-## **Conclusão**
+## **10. Novas Funcionalidades**
 
-A linguagem Zin é ideal para aprendizado de lógica de programação. Com suas estruturas de controle simples e comandos diretos, você pode realizar desde operações básicas até laços e condições.
+1. **Modularização**:
+   - Agora é possível usar o comando `importe` para incluir arquivos `.z` em outros programas.
+   - Exemplo:
+     ```z
+     importe "meuModulo.z";
+     ```
 
-Para futuras funcionalidades, você pode expandir o suporte de **Zin** adicionando novos comandos e operadores. 🚀
+2. **Funções**:
+   - Criação e execução de funções com `funcao` e `retorne`.
+   - Exemplo:
+     ```z
+     funcao soma(a, b) {
+         retorne a + b;
+     }
+
+     variavel resultado = soma(10, 20);
+     escreva("Resultado: " + resultado);
+     ```
+
+3. **Comandos do Instalador**:
+   - `zin -check`: Valida se os arquivos necessários estão no diretório correto.
+   - `zin -create nome.z`: Cria um arquivo `.z` com código inicial:
+     ```z
+     escreva("Hello World");
+     ```
