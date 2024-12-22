@@ -10,14 +10,14 @@
 6. [Estruturas de Controle](#estruturas-de-controle)  
 7. [Operadores Suportados](#operadores-suportados)  
 8. [Exemplo Completo](#exemplo-completo)  
-9. [Execução do Programa](#execução-do-programa)  
-10. [Novas Funcionalidades](#novas-funcionalidades)
+9. [Manipulação de Arquivos](#manipulação-de-arquivos)  
+10. [Execução do Programa](#execução-do-programa)  
 
 ---
 
 ## **1. Introdução**
 
-**Zin** é uma linguagem de programação simples e didática, projetada para aprendizado. Ela possui sintaxe explícita, comandos básicos para controle de fluxo, manipulação de variáveis, suporte a cálculos e operações condicionais. Agora inclui lógica de modularização e suporte avançado a funções.
+**Zin** é uma linguagem de programação simples e didática, projetada para aprendizado. Ela possui sintaxe explícita, comandos básicos para controle de fluxo, manipulação de variáveis, suporte a cálculos e operações condicionais, modularização e manipulação de arquivos TXT.
 
 A linguagem Zin utiliza arquivos com a extensão **`.z`**.
 
@@ -65,6 +65,8 @@ escreva("Novo valor de x: " + x);
 | `funcao`       | Cria uma função.                          |
 | `retorne`      | Retorna um valor de uma função.           |
 | `importe`      | Permite importar arquivos.                |
+| `escrevaArquivo` | Salva conteúdo em um arquivo TXT.       |
+| `leiaArquivo`  | Lê conteúdo de um arquivo TXT.            |
 
 ---
 
@@ -154,8 +156,6 @@ enquanto (contador < 5) {
 
 ## **8. Exemplo Completo**
 
-Aqui está um programa completo que utiliza todas as funcionalidades da linguagem Zin:
-
 ```z
 // Programa para verificar números pares e ímpares
 variavel x = 0;
@@ -175,24 +175,59 @@ enquanto (x < 5) {
 escreva("Fim do programa.");
 ```
 
-**Saída Esperada**:
-```plaintext
-Valor de x: 0
-x é par.
-Valor de x: 1
-x é ímpar.
-Valor de x: 2
-x é par.
-Valor de x: 3
-x é ímpar.
-Valor de x: 4
-x é par.
-Fim do programa.
+---
+
+## **9. Manipulação de Arquivos**
+
+### **9.1. Escrever em um Arquivo**
+
+Use `escrevaArquivo` para salvar texto em um arquivo:
+
+```z
+escrevaArquivo("saida.txt", "Hello, Zin!");
+escreva("Arquivo 'saida.txt' criado com sucesso.");
+```
+
+### **9.2. Ler de um Arquivo**
+
+Use `leiaArquivo` para carregar conteúdo de um arquivo:
+
+```z
+leiaArquivo("saida.txt", conteudo);
+escreva("Conteúdo do arquivo: " + conteudo);
+```
+
+### **9.3. Exemplo Completo: Gerar Relatório**
+
+```z
+variavel relatorio = "Relatório de Números Pares:\n";
+
+variavel i = 1;
+enquanto (i <= 10) {
+    se (i % 2 == 0) {
+        relatorio = relatorio + "Número: " + i + "\n";
+    }
+    i = i + 1;
+}
+
+escrevaArquivo("relatorio.txt", relatorio);
+escreva("Relatório salvo em 'relatorio.txt'.");
+
+```
+
+**Saída Esperada no Arquivo `relatorio.txt`:**
+```
+Relatório de Números Pares:
+Número: 2
+Número: 4
+Número: 6
+Número: 8
+Número: 10
 ```
 
 ---
 
-## **9. Execução do Programa**
+## **10. Execução do Programa**
 
 ### **Requisitos**
 - Tenha o arquivo `zin.bat` para executar.
@@ -212,30 +247,6 @@ zin exemplo.z
 
 ---
 
-## **10. Novas Funcionalidades**
+## **Conclusão**
 
-1. **Modularização**:
-   - Agora é possível usar o comando `importe` para incluir arquivos `.z` em outros programas.
-   - Exemplo:
-     ```z
-     importe "meuModulo.z";
-     ```
-
-2. **Funções**:
-   - Criação e execução de funções com `funcao` e `retorne`.
-   - Exemplo:
-     ```z
-     funcao soma(a, b) {
-         retorne a + b;
-     }
-
-     variavel resultado = soma(10, 20);
-     escreva("Resultado: " + resultado);
-     ```
-
-3. **Comandos do Instalador**:
-   - `zin -check`: Valida se os arquivos necessários estão no diretório correto.
-   - `zin -create nome.z`: Cria um arquivo `.z` com código inicial:
-     ```z
-     escreva("Hello World");
-     ```
+Com suporte à manipulação de arquivos, a linguagem Zin agora permite criar e ler arquivos TXT, expandindo suas aplicações práticas. 🚀

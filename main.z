@@ -1,14 +1,12 @@
-funcao soma(a, b) {
-    retorne a + b;
+variavel relatorio = "Relatório de Números Pares:\n";
+
+variavel i = 1;
+enquanto (i <= 10) {
+    se (i % 2 == 0) {
+        relatorio = relatorio + "Número: " + i + "\n";
+    }
+    i = i + 1;
 }
 
-variavel resultado = soma(7, 3);
-escreva("O resultado da soma é: " + resultado + "\n");
-
-funcao digaOi() {
-    escreva("Oi dentro da função!\n");
-    retorne 123;
-}
-
-variavel testeRetorno = digaOi();
-escreva("A função digaOi() retornou: " + testeRetorno + "\n");
+escrevaArquivo("relatorio.txt", relatorio);
+escreva("Relatório salvo em 'relatorio.txt'.");
