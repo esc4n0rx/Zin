@@ -1,0 +1,6 @@
+Relatório de Números Pares:
+Número: 2
+Número: 4
+Número: 6
+Número: 8
+Número: 10
