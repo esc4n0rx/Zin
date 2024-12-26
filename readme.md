@@ -33,7 +33,7 @@ Para usar a linguagem Zin, você precisa:
 4. Use o comando abaixo para instalar:
    ```powershell
    Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; `
-   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/esc4n0rx/Zin/main/install-zin.ps1" -OutFile "install-zin.ps1"; `
+   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/esc4n0rx/Zin/refs/heads/master/install-zin.ps1" -OutFile "install-zin.ps1"; `
    .\install-zin.ps1
    ```
 
