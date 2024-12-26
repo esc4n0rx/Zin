@@ -4,7 +4,7 @@
     "patterns": [
         {
             "name": "keyword.control.zin",
-            "match": "\\b(escreva|calcule|variavel|se|senao|enquanto)\\b"
+            "match": "\\b(escreva|calcule|variavel|se|senao|enquanto|escrevaArquivo|leiaArquivo)\\b"
         },
         {
             "name": "variable.parameter.zin",

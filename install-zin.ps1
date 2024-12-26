@@ -1,4 +1,3 @@
-
 function Check-Git {
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
         Write-Host "Git não está instalado. Por favor, instale o Git antes de continuar." -ForegroundColor Red
@@ -25,18 +24,26 @@ function Configure-SystemPath {
     }
 }
 
-
 function Create-Directories {
     $installPath = "C:\bin\Zin"
+    $librariesPath = "$installPath\libraries"
+
     if (-not (Test-Path $installPath)) {
         New-Item -ItemType Directory -Path $installPath -Force | Out-Null
         Write-Host "Diretório $installPath criado." -ForegroundColor Green
     } else {
         Write-Host "Diretório $installPath já existe." -ForegroundColor Yellow
     }
+
+    if (-not (Test-Path $librariesPath)) {
+        New-Item -ItemType Directory -Path $librariesPath -Force | Out-Null
+        Write-Host "Diretório $librariesPath criado." -ForegroundColor Green
+    } else {
+        Write-Host "Diretório $librariesPath já existe." -ForegroundColor Yellow
+    }
+
     return $installPath
 }
-
 
 function Clone-Repository {
     param (
@@ -51,6 +58,24 @@ function Clone-Repository {
     }
 }
 
+function Download-Library {
+    param (
+        [string]$libraryName,
+        [string]$installPath
+    )
+    $librariesPath = "$installPath\libraries"
+    $libraryPath = "$librariesPath\$libraryName"
+
+    if (Test-Path $libraryPath) {
+        Write-Host "Biblioteca $libraryName já está instalada." -ForegroundColor Yellow
+        return
+    }
+
+    $libraryUrl = "https://github.com/esc4n0rx/zin-libraries/tree/master/bibliotecas/$libraryName"
+    Write-Host "Baixando biblioteca $libraryName de $libraryUrl..." -ForegroundColor Cyan
+    git clone $libraryUrl $libraryPath
+    Write-Host "Biblioteca $libraryName instalada com sucesso em $libraryPath." -ForegroundColor Green
+}
 
 function Create-BatchFile {
     param (
@@ -80,6 +105,14 @@ if "%1"=="-create" (
     echo Arquivo "%2" criado com sucesso.
     exit /b 0
 )
+if "%1"=="-install" (
+    if "%2"=="" (
+        echo Erro: Nenhum nome de biblioteca especificado.
+        exit /b 1
+    )
+    powershell -Command "& { Download-Library '%2' '$installPath' }"
+    exit /b 0
+)
 if "%1"=="" (
     echo Erro: Nenhum arquivo especificado.
     echo Uso: zin <arquivo.z>
@@ -103,7 +136,7 @@ function Install-Zin {
     Create-BatchFile -installPath $installPath
 
     Write-Host "Instalação do Zin concluída com sucesso!" -ForegroundColor Green
-    Write-Host "Você pode usar o comando 'zin' no terminal para executar arquivos .z." -ForegroundColor Cyan
+    Write-Host "Você pode usar o comando 'zin' no terminal para executar arquivos .z ou instalar bibliotecas usando 'zin -install <biblioteca>'." -ForegroundColor Cyan
 }
 
 Install-Zin
